@@ -13,6 +13,7 @@ import pandas as pd
 from egon.data import config, db
 from egon.data.config import settings
 from egon.data.datasets import Dataset
+from egon.data.datasets.conversion_factors import conversion_factor
 from egon.data.datasets.scenario_parameters import get_sector_parameters
 
 
@@ -112,8 +113,10 @@ def load_NG_generators(scn_name):
         param = ast.literal_eval(row["param"])
         p_nom.append(param["max_supply_M_m3_per_d"])
 
-    conversion_factor = 437.5  # MCM/day to MWh/h
-    NG_generators_list["p_nom"] = [i * conversion_factor for i in p_nom]
+    # Conversion MCM/day to MWh/h
+    NG_generators_list["p_nom"] = [
+        i * conversion_factor["MCMperDay_to_MWhperh"] for i in p_nom
+    ]
 
     # Add missing columns
     NG_generators_list["marginal_cost"] = scn_params["marginal_cost"]["CH4"]
@@ -214,9 +217,10 @@ def load_biogas_generators(scn_name):
         )
 
     # Insert p_nom
-    conversion_factor = 0.01083  # m^3/h to MWh/h
+
+    # Conversion m^3/h to MWh/h
     biogas_generators_list["p_nom"] = [
-        i * conversion_factor
+        i * conversion_factor["m3perh_to_MWhperh"]
         for i in biogas_generators_list["Einspeisung Biomethan [(N*m^3)/h)]"]
     ]
 

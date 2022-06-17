@@ -19,6 +19,7 @@ from egon.data.datasets.electrical_neighbours import (
     get_foreign_bus_id,
     get_map_buses,
 )
+from egon.data.datasets.conversion_factors import conversion_factor
 from egon.data.datasets.scenario_parameters import get_sector_parameters
 
 countries = [
@@ -119,14 +120,14 @@ def read_LNG_capacities():
         "SE": "SE01",
     }
 
-    conversion_factor = 437.5  # MCM/day to MWh/h
-    c2 = 24 / 1000  # MWh/h to GWh/d
     p_nom = []
 
     for index, row in IGGIELGN_LNGs.iterrows():
         param = ast.literal_eval(row["param"])
         p_nom.append(
-            param["max_cap_store2pipe_M_m3_per_d"] * conversion_factor * c2
+            param["max_cap_store2pipe_M_m3_per_d"]
+            * conversion_factor["MCMperDay_to_MWhperh"]
+            * conversion_factor["MWhperh_to_GWhperDay"]
         )
 
     IGGIELGN_LNGs["LNG max_cap_store2pipe_M_m3_per_d (in GWh/d)"] = p_nom
@@ -211,9 +212,6 @@ def calc_capacities():
     df_2030 = calc_capacity_per_year(df, lng, 2030)
     df_2040 = calc_capacity_per_year(df, lng, 2040)
 
-    # Conversion GWh/d to MWh/h
-    conversion_factor = 1000 / 24
-
     df_2035 = pd.concat([df_2040, df_2030], axis=1)
     df_2035 = df_2035.drop(
         columns=[
@@ -226,7 +224,7 @@ def calc_capacities():
     df_2035["cap_2035"] = (df_2035["CH4_2030"] + df_2035["CH4_2040"]) / 2
     df_2035["e_nom_max"] = (
         ((df_2035["e_nom_max_2030"] + df_2035["e_nom_max_2040"]) / 2)
-        * conversion_factor
+        * conversion_factor["GWhperDay_to_MWhperh"]
         * 8760
     )
     df_2035["ratioConv_2035"] = (
@@ -244,7 +242,8 @@ def calc_capacities():
     ).reset_index()
 
     grouped_capacities["cap_2035"] = (
-        grouped_capacities["cap_2035"] * conversion_factor
+        grouped_capacities["cap_2035"]
+        * conversion_factor["GWhperDay_to_MWhperh"]
     )
 
     # Add generator in Russia of infinite capacity
@@ -475,13 +474,10 @@ def calc_global_ch4_demand(Norway_global_demand_1y):
         .drop(columns=["Parameter", "Year"])
     )
 
-    # Conversion GWh/d to MWh/h
-    conversion_factor = 1000 / 24
-
     df_2035 = pd.concat([df_2040, df_2030], axis=1)
     df_2035["GlobD_2035"] = (
         (df_2035["Value_2030"] + df_2035["Value_2040"]) / 2
-    ) * conversion_factor
+    ) * conversion_factor["GWhperDay_to_MWhperh"]
     df_2035.loc["NOS0"] = [
         0,
         0,
@@ -907,13 +903,10 @@ def calc_global_power_to_h2_demand():
         .drop(columns=["Year"])
     )
 
-    # Conversion GWh/d to MWh/h
-    conversion_factor = 1000 / 24
-
     df_2035 = pd.concat([df_2040, df_2030], axis=1)
     df_2035["GlobD_2035"] = (
         (df_2035["Value_2030"] + df_2035["Value_2040"]) / 2
-    ) * conversion_factor
+    ) * conversion_factor["GWhperDay_to_MWhperh"]
 
     global_power_to_h2_demand = df_2035.drop(
         columns=["Value_2030", "Value_2040"]
@@ -1199,7 +1192,9 @@ def calculate_ch4_grid_capacities():
     pipe_capacities_list.loc["(AT00, CH00)"] = ["AT00", "CH00", 651]
 
     # Conversion GWh/d to MWh/h
-    pipe_capacities_list["p_nom"] = pipe_capacities_list[2035] * (1000 / 24)
+    pipe_capacities_list["p_nom"] = (
+        pipe_capacities_list[2035] * conversion_factor["GWhperDay_to_MWhperh"]
+    )
 
     # Border crossing CH4 pipelines between foreign countries
 

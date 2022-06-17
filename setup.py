@@ -82,7 +82,8 @@ setup(
     python_requires=">=3.7.*",
     install_requires=[
         # eg: 'aspectlib==1.1.1', 'six>=1.7',
-        "apache-airflow>=1.10.14,<2.0",  # See accompanying commit message
+        "apache-airflow>=1.10.14,<2.0",
+	"wtforms < 3",
         "atlite==0.2.5",
         "cdsapi",
         "click",
@@ -97,7 +98,7 @@ setup(
         "oedialect==0.0.8",
         "omi",
         "openpyxl",
-        "pandas>1.2.0,<1.4",  # pandas>=1.4 needs SQLAlchemy>=1.4
+        "pandas>1.2.0, <1.4",
         "psycopg2",
         "pyaml",
         "pypsa==0.17.1",

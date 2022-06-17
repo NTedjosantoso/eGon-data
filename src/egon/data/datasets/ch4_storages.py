@@ -14,6 +14,7 @@ from egon.data import config, db
 from egon.data.config import settings
 from egon.data.datasets import Dataset
 from egon.data.datasets.ch4_prod import assign_bus_id
+from egon.data.datasets.conversion_factors import conversion_factor
 from egon.data.datasets.gas_grid import (
     ch4_nodes_number_G,
     define_gas_nodes_list,
@@ -72,8 +73,10 @@ def import_installed_ch4_storages(scn_name):
     Gas_storages_list = Gas_storages_list.assign(NUTS1=NUTS1)
 
     # Calculate e_nom
-    conv_factor = 10830  # gross calorific value = 39 MJ/m3 (eurogas.org)
-    Gas_storages_list["e_nom"] = [conv_factor * i for i in max_workingGas_M_m3]
+    Gas_storages_list["e_nom"] = [
+        conversion_factor["workingGas_M_m3_to_MWh"] * i
+        for i in max_workingGas_M_m3
+    ]
 
     end_year = [float("inf") if x == None else x for x in end_year]
     Gas_storages_list = Gas_storages_list.assign(end_year=end_year)
