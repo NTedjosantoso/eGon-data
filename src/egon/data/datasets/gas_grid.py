@@ -21,10 +21,7 @@ from egon.data import config, db
 from egon.data.config import settings
 from egon.data.datasets import Dataset
 from egon.data.datasets.electrical_neighbours import central_buses_egon100
-from egon.data.datasets.etrago_helpers import (
-    copy_and_modify_buses,
-    copy_and_modify_links,
-)
+from egon.data.datasets.etrago_helpers import copy_and_modify_buses
 from egon.data.datasets.scenario_parameters import get_sector_parameters
 
 
@@ -32,7 +29,7 @@ class GasNodesandPipes(Dataset):
     def __init__(self, dependencies):
         super().__init__(
             name="GasNodesandPipes",
-            version="0.0.5",
+            version="0.0.7",
             dependencies=dependencies,
             tasks=(insert_gas_data, insert_gas_data_eGon100RE),
         )
@@ -490,11 +487,14 @@ def insert_gas_pipeline_list(
         gas_pipelines_list["country_1"] == "FI", "country_1"
     ] = "RU"
     gas_pipelines_list.loc[
+        gas_pipelines_list["id"] == "ST_2612_Seg_0_Seg_0", "country_0"
+    ] = "AT"  # bus "INET_N_1182" DE -> AT
+    gas_pipelines_list.loc[
         gas_pipelines_list["id"] == "INET_PL_385_EE_3_Seg_0_Seg_1", "country_1"
-    ] = "AT"
+    ] = "AT"  # "INET_N_1182" DE -> AT
     gas_pipelines_list.loc[
         gas_pipelines_list["id"] == "LKD_PS_0_Seg_0_Seg_3", "country_0"
-    ] = "NL"
+    ] = "NL"  # bus "SEQ_10608_p" DE -> NL
 
     # Remove link test if length = 0
     gas_pipelines_list = gas_pipelines_list[
@@ -748,5 +748,63 @@ def insert_gas_data_eGon100RE():
     None.
     
     """
+    # copy buses
     copy_and_modify_buses("eGon2035", "eGon100RE", {"carrier": ["CH4"]})
-    copy_and_modify_links("eGon2035", "eGon100RE", ["CH4"], "gas")
+
+    # get CH4 pipelines and modify their nominal capacity with the
+    # retrofitting factor
+    gdf = db.select_geodataframe(
+        f"""
+        SELECT * FROM grid.egon_etrago_link
+        WHERE carrier = 'CH4' AND scn_name = 'eGon2035' AND
+        bus0 IN (
+            SELECT bus_id FROM grid.egon_etrago_bus
+            WHERE scn_name = 'eGon2035' AND country = 'DE'
+        ) AND bus1 IN (
+            SELECT bus_id FROM grid.egon_etrago_bus
+            WHERE scn_name = 'eGon2035' AND country = 'DE'
+        );
+        """,
+        epsg=4326,
+        geom_col="topo",
+    )
+
+    # Update scenario specific information
+    scn_name = "eGon100RE"
+    gdf["scn_name"] = scn_name
+    scn_params = get_sector_parameters("gas", scn_name)
+
+    for param in ["capital_cost", "marginal_cost", "efficiency"]:
+        try:
+            gdf.loc[:, param] = scn_params[param]["CH4"]
+        except KeyError:
+            pass
+
+    # remaining CH4 share is 1 - retroffited pipeline share
+    gdf["p_nom"] *= (
+        1 - scn_params["retrofitted_CH4pipeline-to-H2pipeline_share"]
+    )
+
+    # delete old entries
+    db.execute_sql(
+        f"""
+        DELETE FROM grid.egon_etrago_link
+        WHERE carrier = 'CH4' AND scn_name = '{scn_name}' AND
+        bus0 NOT IN (
+            SELECT bus_id FROM grid.egon_etrago_bus
+            WHERE scn_name = '{scn_name}' AND country != 'DE'
+        ) AND bus1 NOT IN (
+            SELECT bus_id FROM grid.egon_etrago_bus
+            WHERE scn_name = '{scn_name}' AND country != 'DE'
+        );
+        """
+    )
+
+    gdf.to_postgis(
+        "egon_etrago_link",
+        schema="grid",
+        if_exists="append",
+        con=db.engine(),
+        index=False,
+        dtype={"geom": Geometry(), "topo": Geometry()},
+    )
