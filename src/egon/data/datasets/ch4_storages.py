@@ -152,9 +152,10 @@ def import_installed_ch4_storages(scn_name):
 
 def import_ch4_grid_capacity(scn_name):
     """Define dataframe containing the modelling of the CH4 grid storage
-    capacity. The whole storage capacity of the grid (130000 MWh, estimation of
-    the Bundesnetzagentur) is split uniformly between all the german CH4 nodes
-    of the grid. The capacities of the pipes are not considerated.
+    capacity. The whole storage capacity of the grid (130000 MWh,
+    estimation of the Bundesnetzagentur) is split uniformly between all
+    the german CH4 nodes of the grid. The capacities of the pipes are
+    not considerated.
 
     Parameters
     ----------
@@ -164,7 +165,8 @@ def import_ch4_grid_capacity(scn_name):
     Returns
     -------
     Gas_storages_list :
-        Dataframe containing the gas stores in Germany modelling the gas grid storage capacity
+        Dataframe containing the gas stores in Germany modelling the gas
+        grid storage capacity
 
     """
     # Select source from dataset configuration

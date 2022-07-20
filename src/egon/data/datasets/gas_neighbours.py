@@ -1,4 +1,5 @@
 """The central module containing all code dealing with gas neighbours
+
 """
 
 from pathlib import Path
@@ -353,7 +354,6 @@ def calc_capacity_per_year(df, lng, year):
     return df_year
 
 
-
 def insert_generators(gen):
     """Insert gas generators for foreign countries based on TYNDP-data
 
@@ -494,11 +494,12 @@ def calc_global_ch4_demand(Norway_global_demand_1y):
 
 
 def import_ch4_demandTS():
-    """Import from the PyPSA-eur-sec run the timeseries of
-    residential rural heat per neighbor country.
+    """Import from the PyPSA-eur-sec run the timeseries of residential rural heat per neighbor country.
+
     This timeserie is used to calculate:
-    - the global (yearly) heat demand of Norway (that will be supplied by CH4)
-    - the normalized CH4 hourly resolved demand profile
+      * the global (yearly) heat demand of Norway (that will be supplied
+        by CH4)
+      * the normalized CH4 hourly resolved demand profile
 
     Parameters
     ----------
@@ -506,10 +507,11 @@ def import_ch4_demandTS():
 
     Returns
     -------
-    Norway_global_demand: Float
+    Norway_global_demand : Float
         Yearly heat demand of Norway in MWh
-    neighbor_loads_t: pandas.DataFrame
-        Normalized CH4 hourly resolved demand profiles per neighbor country
+    neighbor_loads_t : pandas.DataFrame
+        Normalized CH4 hourly resolved demand profiles per neighbor
+        country
 
     """
 

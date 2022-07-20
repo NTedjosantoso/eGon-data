@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 The central module containing all code dealing with importing data from SciGRID_gas IGGIELGN data
+
+
 """
 from pathlib import Path
 from urllib.request import urlretrieve
@@ -118,7 +120,8 @@ def ch4_nodes_number_G(gas_nodes_list):
     Returns
     -------
         N_ch4_nodes_G : int
-            Number of CH4 buses in Germany (independantly from the mode used)
+            Number of CH4 buses in Germany (independantly from the mode
+            used)
     """
 
     ch4_nodes_list = gas_nodes_list[
@@ -131,10 +134,12 @@ def ch4_nodes_number_G(gas_nodes_list):
 
 def insert_CH4_nodes_list(gas_nodes_list):
     """Insert list of CH4 nodes from SciGRID_gas IGGIELGN data
-        Parameters
+    
+    Parameters
     ----------
     gas_nodes_list : dataframe
         Dataframe containing the gas nodes (Europe)
+    
     Returns
     -------
     None
@@ -221,6 +226,7 @@ def insert_CH4_nodes_list(gas_nodes_list):
 
 def insert_gas_buses_abroad(scn_name="eGon2035"):
     """Insert central gas buses in foreign countries to db, same buses than the foreign AC buses
+    
     Parameters
     ----------
     scn_name : str
@@ -229,7 +235,9 @@ def insert_gas_buses_abroad(scn_name="eGon2035"):
     Returns
     -------
     gdf_abroad_buses : dataframe
-        Dataframe containing the gas in the neighbouring countries and one in the center of Germany in test mode
+        Dataframe containing the gas in the neighbouring countries and
+        one in the center of Germany in test mode
+    
     """
     # Select sources and targets from dataset configuration
     sources = config.datasets()["electrical_neighbours"]["sources"]
@@ -322,6 +330,7 @@ def insert_gas_pipeline_list(
     gas_nodes_list, abroad_gas_nodes_list, scn_name="eGon2035"
 ):
     """Insert list of gas pipelines from SciGRID_gas IGGIELGN data
+    
     Parameters
     ----------
     gas_nodes_list : dataframe
@@ -332,6 +341,7 @@ def insert_gas_pipeline_list(
     Returns
     -------
     None.
+    
     """
     abroad_gas_nodes_list = abroad_gas_nodes_list.set_index("country")
 
@@ -685,9 +695,11 @@ def insert_gas_pipeline_list(
 
 def remove_isolated_gas_buses():
     """Delete gas buses which are not connected to the gas grid.
+    
     Returns
     -------
     None.
+    
     """
     targets = config.datasets()["gas_grid"]["targets"]
 
@@ -711,9 +723,11 @@ def remove_isolated_gas_buses():
 
 def insert_gas_data():
     """Overall function for importing gas data from SciGRID_gas
+    
     Returns
     -------
     None.
+
     """
     download_SciGRID_gas_data()
 
@@ -728,9 +742,11 @@ def insert_gas_data():
 
 def insert_gas_data_eGon100RE():
     """Overall function for importing gas data from SciGRID_gas
+    
     Returns
     -------
     None.
+    
     """
     copy_and_modify_buses("eGon2035", "eGon100RE", {"carrier": ["CH4"]})
     copy_and_modify_links("eGon2035", "eGon100RE", ["CH4"], "gas")

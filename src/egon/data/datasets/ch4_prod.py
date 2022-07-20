@@ -1,6 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-The central module containing all code dealing with importing CH4 production data
+The central module containing all code dealing with importing CH4 production data for eGon2035.
+
+For eGon2035, the gas produced in Germany can be natural gas and biogas. 
+The source productions are geolocalised potentials described as pypsa 
+generators. This module completes the grid.egon_etrago_generator table 
+in the function import_gas_generators.
+
+Dependecies (pipeline)
+======================
+
+* :dataset: GasAreaseGon2035, GasNodesandPipes
+
+Resulting tables
+================
+* grid.egon_etrago_generator is completed TODO: hardcode weg?
+
 """
 from pathlib import Path
 from urllib.request import urlretrieve
@@ -30,10 +45,20 @@ class CH4Production(Dataset):
 def load_NG_generators(scn_name):
     """Define the natural CH4 production units in Germany
 
+    Production references:
+      * Natural gas: Scigrid_gas data set
+        (datasets/gas_data/data/IGGIELGN_Production.csv
+        download in GasNodesandPipes.insert_gas_data)
+      * Biogas: Biogaspartner Einspeiseatlas
+        (datasets/gas_data/Biogaspartner_Einspeiseatlas_
+        Deutschland_2021.xlsx)
+
+
     Parameters
     ----------
     scn_name : str
         Name of the scenario.
+
     Returns
     -------
     CH4_generators_list :
@@ -136,6 +161,7 @@ def load_biogas_generators(scn_name):
     ----------
     scn_name : str
         Name of the scenario.
+
     Returns
     -------
     CH4_generators_list :
@@ -237,7 +263,7 @@ def load_biogas_generators(scn_name):
 
 
 def assign_bus_id(dataframe, scn_name, carrier):
-    """Assigns bus_ids (for H2 buses) to points (contained in a dataframe) according to location
+    """Assigns bus_ids (for H2 buses of specific carrier in a specific scenario) to points (contained in a dataframe) according to location
 
     Parameters
     ----------
@@ -277,10 +303,38 @@ def assign_bus_id(dataframe, scn_name, carrier):
 def import_gas_generators(scn_name="eGon2035"):
     """Insert list of gas production units in database
 
+    To insert the gas production units in the database, the following
+    steps are followed:
+
+      * cleaning of the database table grid.egon_etrago_generator of the
+        CH4 generators of the specific scenario (eGon2035)
+      * call of the functions load_NG_generators and
+        :py:func:`load_biogas_generators` that respectively return
+        dataframes containing the natural- an bio-gas production units
+        in Germany
+      * attribution of a bus_id to which each generator connected
+        (call the function :py:func:`assign_bus_id`)
+      * aggregation of the CH4 productions with same properties at the
+        same bus. The properties that should be the same in order that
+        different generators are aggregated are:
+          * scenario
+          * carrier
+          * marginal cost: this parameter differentiate the natural gas
+            generators of biogas generators
+      * addition of the missing columns: scn_name, carrier and
+        generator_id
+      * insertion of the generators into the database
+        (grid.egon_etrago_generators) TODO: hardcode weg?
+
     Parameters
     ----------
     scn_name : str
         Name of the scenario.
+
+    Returns
+    -------
+    None
+
     """
     # Connect to local database
     engine = db.engine()
