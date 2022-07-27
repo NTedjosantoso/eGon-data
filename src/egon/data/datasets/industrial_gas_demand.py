@@ -1,7 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-The central module containing all code dealing with importing gas industrial demand
+The central module containing code dealing with gas industrial demand
+
+In this this module, the functions to import the indusrial H2 and CH4 
+demands (from opendata.ffe database) and to insert them in the database 
+after modification are to be found.
+
+Dependecies (pipeline)
+======================
+
+* :dataset: GasAreaseGon2035, GasAreaseGon100RE, IndustrialGasDemand
+
+Resulting tables
+================
+* grid.egon_etrago_load is completed
+
 """
+
+
 from pathlib import Path
 import os
 
@@ -24,6 +40,10 @@ from egon.data.datasets.scenario_parameters import get_sector_parameters
 
 
 class IndustrialGasDemand(Dataset):
+    """Download the indusrial gas demands (from opendata.ffe database)
+
+    TODO No dataset"""
+
     def __init__(self, dependencies):
         super().__init__(
             name="IndustrialGasDemand",
@@ -34,6 +54,8 @@ class IndustrialGasDemand(Dataset):
 
 
 class IndustrialGasDemandeGon2035(Dataset):
+    "Insert the industrial gas demands in the databank for eGon2035"
+
     def __init__(self, dependencies):
         super().__init__(
             name="IndustrialGasDemandeGon2035",
@@ -44,6 +66,8 @@ class IndustrialGasDemandeGon2035(Dataset):
 
 
 class IndustrialGasDemandeGon100RE(Dataset):
+    "Insert the industrial gas demands in the databank for eGon100RE"
+
     def __init__(self, dependencies):
         super().__init__(
             name="IndustrialGasDemandeGon100RE",
@@ -54,7 +78,11 @@ class IndustrialGasDemandeGon100RE(Dataset):
 
 
 def read_industrial_demand(scn_name, carrier):
-    """Read the gas demand data
+    """Read the industrial gas demand data
+
+    This function read the CH4 or H2 industrial demand downloaded
+    in :py:func:`download_industrial_gas_demand` for the scenarios
+    eGon2035 and eGon100RE.
 
     Parameters
     ----------
@@ -66,7 +94,7 @@ def read_industrial_demand(scn_name, carrier):
     Returns
     -------
     df : pandas.core.frame.DataFrame
-        Dataframe containing the industrial demand
+        Dataframe containing the industrial gas demand
 
     """
     target_file = Path(".") / "datasets/gas_data/demand/region_corr.json"
@@ -150,8 +178,15 @@ def read_industrial_demand(scn_name, carrier):
     ).set_geometry("geom", crs=4326)
 
 
-def read_industrial_CH4_demand(scn_name="eGon2035"):
-    """Download the CH4 industrial demand in Germany from the FfE open data portal
+def read_industrial_CH4_demand(scn_name):
+    """
+    Read the CH4 industrial demand in Germany
+
+    For CH4, and using :py:func:`read_industrial_demand` this function
+    read the CH4 industrial demands and put them in the right format by:
+      * attribution of a bus_id to which each demand (call the function
+        :py:func:`assign_gas_bus_id`)
+      * addition of the missing column: carrier ('CH4')
 
     Parameters
     ----------
@@ -183,8 +218,19 @@ def read_industrial_CH4_demand(scn_name="eGon2035"):
     return industrial_loads_list
 
 
-def read_industrial_H2_demand(scn_name="eGon2035"):
-    """Download the H2 industrial demand in Germany from the FfE open data portal
+def read_industrial_H2_demand(scn_name):
+    """
+    Create the components to model the H2 industrial demand in Germany
+
+    This function creates the infrastructure for the H2 industrial
+    demand in Germany. To each industrial consumption location
+    identified with :py:func:`read_industrial_demand` is a bus
+    associated. To each H2 industrial bus is associated:
+      * one link to the nearest H2_grid bus with carrier 'H2_ind_load'
+      * one link to the nearest H2_saltacvern bus if this one is
+        located not further than 10 km, with carrier 'H2_ind_load'
+
+    These new links are then inserted to the database.
 
     Parameters
     ----------
@@ -245,7 +291,7 @@ def read_industrial_H2_demand(scn_name="eGon2035"):
             bus_gdf, carrier, target, scenario=scn_name
         )
 
-        # Delete existing buses
+        # Delete existing links
         db.execute_sql(
             f"""
             DELETE FROM grid.egon_etrago_link
@@ -254,7 +300,7 @@ def read_industrial_H2_demand(scn_name="eGon2035"):
             """
         )
 
-        # initalize dataframe for new buses
+        # initalize dataframe for new links
         grid_links = pd.DataFrame(
             columns=["scn_name", "link_id", "bus0", "bus1", "carrier"]
         )
@@ -305,6 +351,11 @@ def delete_old_entries(scn_name):
     ----------
     scn_name : str
         Name of the scenario.
+
+    Returns
+    -------
+    None
+
     """
     # Clean tables
     db.execute_sql(
@@ -338,7 +389,10 @@ def delete_old_entries(scn_name):
 
 def insert_new_entries(industrial_gas_demand, scn_name):
     """
-    Insert loads.
+    Insert loads to the database.
+
+    The function attribute a id to each load in a list and insert them
+    into the database.
 
     Parameters
     ----------
@@ -346,6 +400,13 @@ def insert_new_entries(industrial_gas_demand, scn_name):
         Load data to insert.
     scn_name : str
         Name of the scenario.
+
+    Returns
+    -------
+    industrial_gas_demand : pandas.DataFrame
+        Dataframe containing the loads that have been inserted in
+        the database.
+
     """
 
     new_id = db.next_etrago_id("load")
@@ -376,17 +437,28 @@ def insert_new_entries(industrial_gas_demand, scn_name):
 
 
 def insert_industrial_gas_demand_egon2035():
-    """Insert list of industrial gas demand (one per NUTS3) in database
+    """Insert industrial gas demands in database for eGon2035.
+
+    Insert the list of industrial CH4 and H2 demands (one per NUTS3)
+    in database for the eGon2035 scenario by executing the following
+    steps:
+
+      * Read the CH4 and the H2 industrial demands in Germany with
+        fonctions :py:func:`read_industrial_CH4_demand` and
+        :py:func:`read_industrial_H2_demand`.
+      * Aggregate the demands with the same properties at the same bus.
+      * Insert the loads in the database by executing :py:func:`insert_new_entries`.
+      * Insert the time series associated to the loads in the database
+        by executing :py:func:`insert_new_entries`.
 
     Parameters
     ----------
-    scn_name : str
-        Name of the scenario
+    None
 
     Returns
     -------
-        industrial_gas_demand : Dataframe containing the industrial gas demand
-        in Germany
+    None
+
     """
     scn_name = "eGon2035"
     delete_old_entries(scn_name)
@@ -409,17 +481,23 @@ def insert_industrial_gas_demand_egon2035():
 
 
 def insert_industrial_gas_demand_egon100RE():
-    """Insert list of industrial gas demand (one per NUTS3) in database
+    """Insert industrial gas demands in database for eGon100RE.
+
+    Insert the list of industrial CH4 and H2 demands (one per NUTS3)
+    in database for the eGon100RE scenario by executing the following
+    steps:
+
+    TODO
+
 
     Parameters
     ----------
-    scn_name : str
-        Name of the scenario
+    None
 
     Returns
     -------
-        industrial_gas_demand : Dataframe containing the industrial gas demand
-        in Germany
+    None
+
     """
     scn_name = "eGon100RE"
     delete_old_entries(scn_name)

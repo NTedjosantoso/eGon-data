@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-The central module containing all code dealing with importing CH4 production data for eGon2035.
+The central module containing code dealing with importing CH4 production data for eGon2035.
 
 For eGon2035, the gas produced in Germany can be natural gas and biogas. 
 The source productions are geolocalised potentials described as pypsa 
@@ -14,7 +14,8 @@ Dependecies (pipeline)
 
 Resulting tables
 ================
-* grid.egon_etrago_generator is completed TODO: hardcode weg?
+* grid.egon_etrago_generator (TODO: Use 
+config.datasets()["gas_prod"]["target"]) is completed 
 
 """
 from pathlib import Path
@@ -33,6 +34,8 @@ from egon.data.datasets.scenario_parameters import get_sector_parameters
 
 
 class CH4Production(Dataset):
+    "Insert the CH4 productions in the databank for eGon2035"
+
     def __init__(self, dependencies):
         super().__init__(
             name="CH4Production",
@@ -48,7 +51,7 @@ def load_NG_generators(scn_name):
     Production references:
       * Natural gas: Scigrid_gas data set
         (datasets/gas_data/data/IGGIELGN_Production.csv
-        download in GasNodesandPipes.insert_gas_data)
+        downloaded in GasNodesandPipes.insert_gas_data)
       * Biogas: Biogaspartner Einspeiseatlas
         (datasets/gas_data/Biogaspartner_Einspeiseatlas_
         Deutschland_2021.xlsx)
@@ -275,7 +278,8 @@ def import_gas_generators(scn_name="eGon2035"):
         dataframes containing the natural- an bio-gas production units
         in Germany
       * attribution of a bus_id to which each generator connected
-        (call the function :py:func:`assign_bus_id`)
+        (call the function :py:func:`assign_gas_bus_id <db.assign_gas_bus_id>`
+        from :py:module::)
       * aggregation of the CH4 productions with same properties at the
         same bus. The properties that should be the same in order that
         different generators are aggregated are:

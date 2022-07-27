@@ -214,8 +214,10 @@ def insert_ch4_stores(scn_name):
         Name of the scenario.
 
     Returns
-    ----
-    None"""
+    -------
+    None
+
+    """
 
     # Connect to local database
     engine = db.engine()

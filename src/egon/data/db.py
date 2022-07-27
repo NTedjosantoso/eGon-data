@@ -354,12 +354,12 @@ def check_db_unique_violation(func):
 
 
 def assign_gas_bus_id(dataframe, scn_name, carrier):
-    """Assigns bus_ids to points (contained in a dataframe) according to location
+    """Assigns bus_ids to gas buses (points) according to location
 
     Parameters
     ----------
     dataframe : pandas.DataFrame
-        DataFrame cointaining points
+        DataFrame cointaining buses
     scn_name : str
         Name of the scenario
     carrier : str
