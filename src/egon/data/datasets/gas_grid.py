@@ -1,7 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-The central module containing all code dealing with importing data from SciGRID_gas IGGIELGN data
+The module containing code aiming to insert the CH4 grid in the database
 
+The central module containing all code dealing with importing data from 
+SciGRID_gas IGGIELGN data and inserting the corresponding data, CH4 
+buses and links (representing pipelines) in the database.
+
+Dependecies (pipeline)
+======================
+
+* :dataset: DataBundle, ElectricalNeighbours, Osmtgmod, 
+    ScenarioParameters, tasks["etrago_setup.create-tables"]
+
+Resulting tables
+================
+* grid.egon_etrago_bus is completed
+* grid.egon_etrago_link is completed
 
 """
 from pathlib import Path
@@ -26,6 +40,8 @@ from egon.data.datasets.scenario_parameters import get_sector_parameters
 
 
 class GasNodesandPipes(Dataset):
+    "Insert the CH4 buses and links in the database"
+
     def __init__(self, dependencies):
         super().__init__(
             name="GasNodesandPipes",
@@ -38,6 +54,18 @@ class GasNodesandPipes(Dataset):
 def download_SciGRID_gas_data():
     """
     Download SciGRID_gas IGGIELGN data from Zenodo
+
+    The following data for CH4 are downloaded in the folder
+    ./datasets/gas_data/data:
+      * Buses (file IGGIELGN_Nodes.csv),
+      * Pipelines (file IGGIELGN_PipeSegments.csv),
+      * Productions (file IGGIELGN_Productions.csv),
+      * Storages (file IGGIELGN_Storages.csv),
+      * LNG terminals (file IGGIELGN_LNGs.csv).
+
+    Returns
+    -------
+    None
 
     """
     path = Path(".") / "datasets" / "gas_data"
@@ -57,7 +85,7 @@ def download_SciGRID_gas_data():
         "Productions",
         "Storages",
         "LNGs",
-    ]  #'Compressors'
+    ]
     files = []
     for i in components:
         files.append("data/" + basename + "_" + i + ".csv")
@@ -70,7 +98,11 @@ def download_SciGRID_gas_data():
 
 
 def define_gas_nodes_list():
-    """Define list of gas nodes from SciGRID_gas IGGIELGN data
+    """Define list of CH4 buses from SciGRID_gas IGGIELGN data
+
+    The CH4 nodes are modelled as buses. Therefore the SciGRID_gas data
+    concerning nodes are read from a cvs file and inserted in a
+    dataframe which is return.
 
     Returns
     -------
@@ -109,16 +141,18 @@ def define_gas_nodes_list():
 
 
 def ch4_nodes_number_G(gas_nodes_list):
-    """Insert list of CH4 nodes from SciGRID_gas IGGIELGN data
-        Parameters
+    """Return the number of CH4 buses in Germany
+
+    Parameters
     ----------
     gas_nodes_list : dataframe
         Dataframe containing the gas nodes (Europe)
+
     Returns
     -------
-        N_ch4_nodes_G : int
-            Number of CH4 buses in Germany (independantly from the mode
-            used)
+    N_ch4_nodes_G : int
+        Number of CH4 buses in Germany
+
     """
 
     ch4_nodes_list = gas_nodes_list[
@@ -130,16 +164,27 @@ def ch4_nodes_number_G(gas_nodes_list):
 
 
 def insert_CH4_nodes_list(gas_nodes_list):
-    """Insert list of CH4 nodes from SciGRID_gas IGGIELGN data
-    
+    """Insert list of CH4 nodes in the database for eGon2035
+
+    Insert the list of CH4 nodes in the database by executing the
+    following steps:
+      * Receive the buses as parameter (from SciGRID_gas IGGIELGN data)
+      * Add the missing information:
+          * Name of the scenario (scn_name): eGon2035,
+          * Carrier: CH4
+      * Clean the database table grid.egon_etrago_bus of the
+        CH4 buses of the specific scenario (eGon2035) in Germany
+      * Insert the buses in the table grid.egon_etrago_bus.
+
     Parameters
     ----------
     gas_nodes_list : dataframe
         Dataframe containing the gas nodes (Europe)
-    
+
     Returns
     -------
     None
+
     """
     # Connect to local database
     engine = db.engine()
@@ -180,8 +225,6 @@ def insert_CH4_nodes_list(gas_nodes_list):
             gas_nodes_list["NUTS1"].isin([map_states[boundary], np.nan])
         ]
 
-        # A completer avec nodes related to pipelines which have an end in the selected area et evt deplacer ds define_gas_nodes_list
-
     # Add missing columns
     c = {"scn_name": "eGon2035", "carrier": "CH4"}
     gas_nodes_list = gas_nodes_list.assign(**c)
@@ -221,21 +264,38 @@ def insert_CH4_nodes_list(gas_nodes_list):
     )
 
 
-def insert_gas_buses_abroad(scn_name="eGon2035"):
-    """Insert central gas buses in foreign countries to db, same buses than the foreign AC buses
-    
-    Parameters
-    ----------
-    scn_name : str
-        Name of the scenario
+def insert_gas_buses_abroad():
+    """Insert CH4 buses in neigbouring countries to database for eGon2035
+
+    For the scenario eGon2035, insert central CH4 buses in foreign
+    countries to the database. The foreign countries are the direct
+    neihbouring countries (same buses than the central foreign AC
+    buses), with the addition of Russia that is considered as an
+    unlimited source of fossil CH4. Therefore, the following steps are
+    executed:
+      * Definition of the foreign buses are determined with the function
+        :py:func:`import central_buses_egon100` from
+        :py:module::`egon.data.datasets.electrical_neighbours`)
+      * Removal of the buses in order to have only one bus in each
+        neighbouring country
+      * Removal of the the irrelevant columns
+      * Addition of the missing information:
+          * Name of the scenario (scn_name): eGon2035,
+          * Carrier: CH4
+      * Attribution of an id to each bus
+      * Cleaning of the database table grid.egon_etrago_bus of the
+        CH4 buses of the specific scenario (eGon2035) out of Germany
+      * Insert the neighbouring buses in the table grid.egon_etrago_bus.
 
     Returns
     -------
     gdf_abroad_buses : dataframe
         Dataframe containing the gas in the neighbouring countries and
         one in the center of Germany in test mode
-    
+
     """
+    scn_name = "eGon2035"
+
     # Select sources and targets from dataset configuration
     sources = config.datasets()["electrical_neighbours"]["sources"]
 
@@ -327,7 +387,7 @@ def insert_gas_pipeline_list(
     gas_nodes_list, abroad_gas_nodes_list, scn_name="eGon2035"
 ):
     """Insert list of gas pipelines from SciGRID_gas IGGIELGN data
-    
+
     Parameters
     ----------
     gas_nodes_list : dataframe
@@ -338,7 +398,7 @@ def insert_gas_pipeline_list(
     Returns
     -------
     None.
-    
+
     """
     abroad_gas_nodes_list = abroad_gas_nodes_list.set_index("country")
 
@@ -656,8 +716,9 @@ def insert_gas_pipeline_list(
 
     # Insert data to db
     db.execute_sql(
-        f"""DELETE FROM grid.egon_etrago_link WHERE "carrier" = '{main_gas_carrier}' AND
-           scn_name = '{scn_name}';
+        f"""DELETE FROM grid.egon_etrago_link 
+            WHERE "carrier" = '{main_gas_carrier}' 
+            AND scn_name = '{scn_name}';
         """
     )
 
@@ -695,11 +756,11 @@ def insert_gas_pipeline_list(
 
 def remove_isolated_gas_buses():
     """Delete gas buses which are not connected to the gas grid.
-    
+
     Returns
     -------
     None.
-    
+
     """
     targets = config.datasets()["gas_grid"]["targets"]
 
@@ -723,7 +784,7 @@ def remove_isolated_gas_buses():
 
 def insert_gas_data():
     """Overall function for importing gas data from SciGRID_gas
-    
+
     Returns
     -------
     None.
@@ -742,11 +803,11 @@ def insert_gas_data():
 
 def insert_gas_data_eGon100RE():
     """Overall function for importing gas data from SciGRID_gas
-    
+
     Returns
     -------
     None.
-    
+
     """
     # copy buses
     copy_and_modify_buses("eGon2035", "eGon100RE", {"carrier": ["CH4"]})

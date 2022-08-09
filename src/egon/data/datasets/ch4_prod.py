@@ -279,7 +279,7 @@ def import_gas_generators(scn_name="eGon2035"):
         in Germany
       * attribution of a bus_id to which each generator connected
         (call the function :py:func:`assign_gas_bus_id <db.assign_gas_bus_id>`
-        from :py:module::)
+        from :py:module::egon.data.db)
       * aggregation of the CH4 productions with same properties at the
         same bus. The properties that should be the same in order that
         different generators are aggregated are:

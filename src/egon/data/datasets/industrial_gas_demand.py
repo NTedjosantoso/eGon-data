@@ -42,7 +42,9 @@ from egon.data.datasets.scenario_parameters import get_sector_parameters
 class IndustrialGasDemand(Dataset):
     """Download the indusrial gas demands (from opendata.ffe database)
 
-    TODO No dataset"""
+    No dataset is resulting
+
+    """
 
     def __init__(self, dependencies):
         super().__init__(
@@ -454,10 +456,6 @@ def insert_industrial_gas_demand_egon2035():
       * Insert the time series associated to the loads in the database
         by executing :py:func:`insert_new_entries`.
 
-    Parameters
-    ----------
-    None
-
     Returns
     -------
     None
@@ -505,11 +503,6 @@ def insert_industrial_gas_demand_egon100RE():
       * Insert the loads in the database by executing :py:func:`insert_new_entries`.
       * Insert the time series associated to the loads in the database
         by executing :py:func:`insert_new_entries`.
-
-
-    Parameters
-    ----------
-    None
 
     Returns
     -------
@@ -616,7 +609,7 @@ def insert_industrial_gas_demand_time_series(egon_etrago_load_gas):
 
     Parameters
     ----------
-     industrial_gas_demand : pandas.DataFrame
+    industrial_gas_demand : pandas.DataFrame
         Dataframe containing the loads that have been inserted in
         the database and whose time serie will be integrate to the
         database.
@@ -652,10 +645,6 @@ def download_industrial_gas_demand():
 
     The industrial demands for H2 and CH4 are downloaded in the
     folder ./datasets/gas_data/demand.
-
-    Parameters
-    ----------
-    None
 
     Returns
     -------
