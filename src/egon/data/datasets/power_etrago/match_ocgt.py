@@ -56,6 +56,10 @@ def insert_open_cycle_gas_turbines(scn_name="eGon2035"):
     gdf["efficiency"] = scn_params["efficiency"][carrier]
     gdf["marginal_cost"] = scn_params["marginal_cost"][carrier]
 
+    # Insert p_nom
+    gdf["p_nom"] = gdf["el_capacity"] * scn_params["efficiency"][carrier]
+    gdf.drop(columns=["el_capacity"])
+
     # Select next id value
     new_id = db.next_etrago_id("link")
     gdf["link_id"] = range(new_id, new_id + len(gdf))
@@ -85,7 +89,7 @@ def map_buses(scn_name):
         GeoDataFrame with connected buses.
     """
     # Create dataframes containing all gas buses and all the HV power buses
-    sql_AC = f"""SELECT bus_id, el_capacity as p_nom, geom
+    sql_AC = f"""SELECT bus_id, el_capacity, geom
                 FROM supply.egon_power_plants
                 WHERE carrier = 'gas' AND scenario = '{scn_name}';
                 """
