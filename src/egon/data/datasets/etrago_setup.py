@@ -1,4 +1,39 @@
-# coding: utf-8
+"""
+The module containing code to create tables suitable as eTraGo input
+
+The central module containing code to define and create a table structure
+suitable to store all input data for the optimization tool eTraGo. The 
+resulting tables are filled with first basic contents such as carrier names.
+Further data insertion happens later in the process.
+
+Dependecies (pipeline)
+======================
+* :dataset: Setup
+    
+Resulting tables
+================
+* grid.egon_etrago_bus
+* grid.egon_etrago_bus_timeseries
+* grid.egon_etrago_generator
+* grid.egon_etrago_generator_timeseries
+* grid.egon_etrago_line
+* grid.egon_etrago_line_timeseries
+* grid.egon_etrago_link
+* grid.egon_etrago_link_timeseries
+* grid.egon_etrago_load
+* grid.egon_etrago_load_timeseries
+* grid.egon_etrago_carrier
+* grid.egon_etrago_storage
+* grid.egon_etrago_storage_timeseries
+* grid.egon_etrago_store
+* grid.egon_etrago_store_timeseries
+* grid.egon_etrago_temp_resolution
+* grid.egon_etrago_transformer
+* grid.egon_etrago_transformer_timeseries
+* grid.egon_etrago_hv_busmap
+
+"""
+
 from geoalchemy2.types import Geometry
 from shapely.geometry import LineString
 from sqlalchemy import (
