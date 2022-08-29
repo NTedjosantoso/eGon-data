@@ -2,8 +2,11 @@
 The module containing code to create tables suitable as eTraGo input
 
 The central module containing code to define and create a table structure
-suitable to store all input data for the optimization tool eTraGo. The 
-resulting tables are filled with first basic contents such as carrier names.
+suitable to store all input data for the optimization tool eTraGo. As eTraGo
+is based on the open source toolbox `PyPSA <https://pypsa.readthedocs.io/en/latest/index.html>`_
+please refere to its `documentation <https://pypsa.readthedocs.io/en/latest/components.html>`_
+for more information on the components and their characteristics. 
+The resulting tables are filled with first basic contents such as carrier names.
 Further data insertion happens later in the process.
 
 Dependecies (pipeline)
@@ -71,6 +74,14 @@ class EtragoSetup(Dataset):
 
 
 class EgonPfHvBus(Base):
+    """Class definition of table grid.egon_etrago_bus
+    
+    Class definition of table grid.egon_etrago_bus representing all
+    bus components within the network. For more information on the bus
+    component and its characteristics refer to the 
+    `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#bus>`_
+    
+    """
     __tablename__ = "egon_etrago_bus"
     __table_args__ = {"schema": "grid"}
 
