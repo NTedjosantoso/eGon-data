@@ -34,12 +34,15 @@ from egon.data.datasets.scenario_parameters import get_sector_parameters
 
 
 class CH4Production(Dataset):
-    "Insert the CH4 productions in the databank for eGon2035"
-
+    """Insert the CH4 productions in the database for eGon2035"""
+    #:
+    name: str = "CH4Production"
+    #:
+    version: str = "0.0.7"
     def __init__(self, dependencies):
         super().__init__(
-            name="CH4Production",
-            version="0.0.7",
+            name=self.name,
+            version=self.version,
             dependencies=dependencies,
             tasks=(import_gas_generators),
         )
