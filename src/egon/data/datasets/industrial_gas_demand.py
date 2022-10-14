@@ -45,7 +45,10 @@ class IndustrialGasDemand(Dataset):
     No dataset is resulting
 
     """
-
+    #:
+    name: str = "IndustrialGasDemand"
+    #:
+    version: str = "0.0.3"
     def __init__(self, dependencies):
         super().__init__(
             name="IndustrialGasDemand",
@@ -57,7 +60,10 @@ class IndustrialGasDemand(Dataset):
 
 class IndustrialGasDemandeGon2035(Dataset):
     "Insert the industrial gas demands in the database for eGon2035"
-
+    #:
+    name: str = "IndustrialGasDemandeGon2035"
+    #:
+    version: str = "0.0.2"
     def __init__(self, dependencies):
         super().__init__(
             name="IndustrialGasDemandeGon2035",
@@ -69,7 +75,10 @@ class IndustrialGasDemandeGon2035(Dataset):
 
 class IndustrialGasDemandeGon100RE(Dataset):
     "Insert the industrial gas demands in the database for eGon100RE"
-
+    #:
+    name: str = "IndustrialGasDemandeGon100RE"
+    #:
+    version: str = "0.0.2"
     def __init__(self, dependencies):
         super().__init__(
             name="IndustrialGasDemandeGon100RE",
@@ -196,7 +205,7 @@ def read_and_process_demand(scn_name="eGon2035", carrier=None, grid_carrier=None
 
     Returns
     -------
-    industrial_demand :
+    industrial_demand : pandas.DataFrame
         Dataframe containing the industrial demand in Germany
 
     """
@@ -278,7 +287,7 @@ def insert_new_entries(industrial_gas_demand, scn_name):
     """
     Insert loads to the database.
 
-    The following are executed:
+    The following steps are executed:
       * Attribute an id to each load in a list
       * Deleting of the column containing the time series
       * Insertion into the database
