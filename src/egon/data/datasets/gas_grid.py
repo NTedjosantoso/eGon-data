@@ -40,7 +40,15 @@ from egon.data.datasets.scenario_parameters import get_sector_parameters
 
 
 class GasNodesandPipes(Dataset):
-    "Insert the CH4 buses and links in the database"
+    """Insert the CH4 buses and links in the database
+
+    Insert the CH4 buses and links (pipelines) in the database for the
+    scenarios eGon2035 and eGon100RE
+    """
+    #:
+    name: str = "GasNodesandPipes"
+    #:
+    version: str = "0.0.7"
 
     def __init__(self, dependencies):
         super().__init__(
@@ -106,8 +114,8 @@ def define_gas_nodes_list():
 
     Returns
     -------
-    gas_nodes_list : dataframe
-        Dataframe containing the gas nodes (Europe)
+    gas_nodes_list : pandas.DataFrame
+        Dataframe containing the gas nodes in Europe
 
     """
     # Select next id value
@@ -146,7 +154,7 @@ def ch4_nodes_number_G(gas_nodes_list):
     Parameters
     ----------
     gas_nodes_list : dataframe
-        Dataframe containing the gas nodes (Europe)
+        Dataframe containing the gas nodes in Europe
 
     Returns
     -------
@@ -164,10 +172,10 @@ def ch4_nodes_number_G(gas_nodes_list):
 
 
 def insert_CH4_nodes_list(gas_nodes_list):
-    """Insert list of CH4 nodes in the database for eGon2035
+    """Insert list of german CH4 nodes in the database for eGon2035
 
-    Insert the list of CH4 nodes in the database by executing the
-    following steps:
+    Insert the list of german CH4 nodes in the database by executing
+    the following steps:
       * Receive the buses as parameter (from SciGRID_gas IGGIELGN data)
       * Add the missing information:
           * Name of the scenario (scn_name): eGon2035,
@@ -178,8 +186,8 @@ def insert_CH4_nodes_list(gas_nodes_list):
 
     Parameters
     ----------
-    gas_nodes_list : dataframe
-        Dataframe containing the gas nodes (Europe)
+    gas_nodes_list : pandas.DataFrame
+        Dataframe containing the gas nodes in Europe
 
     Returns
     -------
@@ -289,7 +297,7 @@ def insert_gas_buses_abroad():
 
     Returns
     -------
-    gdf_abroad_buses : dataframe
+    gdf_abroad_buses : pandas.DataFrame
         Dataframe containing the gas in the neighbouring countries and
         one in the center of Germany in test mode
 
