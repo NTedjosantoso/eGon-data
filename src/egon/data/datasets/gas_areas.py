@@ -11,34 +11,34 @@ from egon.data.datasets.generate_voronoi import get_voronoi_geodataframe
 
 
 class GasAreaseGon2035(Dataset):
-    """Create the gas voronoi table and the gas voronoi areas for eGon2035
+    """Create the gas voronoi table and the gas voronoi areas for eGon2035"""
 
-    """
     #:
     name: str = "GasAreaseGon2035"
     #:
     version: str = "0.0.2"
+
     def __init__(self, dependencies):
         super().__init__(
-            name="GasAreaseGon2035",
-            version="0.0.2",
+            name=self.name,
+            version=self.version,
             dependencies=dependencies,
             tasks=(create_gas_voronoi_table, voronoi_egon2035),
         )
 
 
 class GasAreaseGon100RE(Dataset):
-    """Create the gas voronoi table and the gas voronoi areas for eGon100RE
+    """Create the gas voronoi table and the gas voronoi areas for eGon100RE"""
 
-    """
     #:
     name: str = "GasAreaseGon100RE"
     #:
     version: str = "0.0.1"
+
     def __init__(self, dependencies):
         super().__init__(
-            name="GasAreaseGon100RE",
-            version="0.0.1",
+            name=self.name,
+            version=self.version,
             dependencies=dependencies,
             tasks=(voronoi_egon100RE),
         )

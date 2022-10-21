@@ -45,14 +45,16 @@ class IndustrialGasDemand(Dataset):
     No dataset is resulting
 
     """
+
     #:
     name: str = "IndustrialGasDemand"
     #:
     version: str = "0.0.3"
+
     def __init__(self, dependencies):
         super().__init__(
-            name="IndustrialGasDemand",
-            version="0.0.3",
+            name=self.name,
+            version=self.version,
             dependencies=dependencies,
             tasks=(download_industrial_gas_demand),
         )
@@ -64,10 +66,11 @@ class IndustrialGasDemandeGon2035(Dataset):
     name: str = "IndustrialGasDemandeGon2035"
     #:
     version: str = "0.0.2"
+
     def __init__(self, dependencies):
         super().__init__(
-            name="IndustrialGasDemandeGon2035",
-            version="0.0.2",
+            name=self.name,
+            version=self.version,
             dependencies=dependencies,
             tasks=(insert_industrial_gas_demand_egon2035),
         )
@@ -79,10 +82,11 @@ class IndustrialGasDemandeGon100RE(Dataset):
     name: str = "IndustrialGasDemandeGon100RE"
     #:
     version: str = "0.0.2"
+
     def __init__(self, dependencies):
         super().__init__(
-            name="IndustrialGasDemandeGon100RE",
-            version="0.0.2",
+            name=self.name,
+            version=self.version,
             dependencies=dependencies,
             tasks=(insert_industrial_gas_demand_egon100RE),
         )

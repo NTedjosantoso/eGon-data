@@ -45,6 +45,7 @@ class GasNodesandPipes(Dataset):
     Insert the CH4 buses and links (pipelines) in the database for the
     scenarios eGon2035 and eGon100RE
     """
+
     #:
     name: str = "GasNodesandPipes"
     #:
@@ -52,8 +53,8 @@ class GasNodesandPipes(Dataset):
 
     def __init__(self, dependencies):
         super().__init__(
-            name="GasNodesandPipes",
-            version="0.0.7",
+            name=self.name,
+            version=self.version,
             dependencies=dependencies,
             tasks=(insert_gas_data, insert_gas_data_eGon100RE),
         )
